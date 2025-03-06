@@ -1,31 +1,25 @@
-import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+'use client';
+
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from '../theme';
 import "./globals.css";
 
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+  },
 });
-
-export const metadata: Metadata = {
-  title: "Material UI App",
-  description: "Next.js with Material UI",
-};
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className={roboto.className}>
-        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+      <body>
+        <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
             {children}

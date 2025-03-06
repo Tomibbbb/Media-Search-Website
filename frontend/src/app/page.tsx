@@ -1,28 +1,48 @@
 'use client';
 
-import { Box, Button, Container, Typography, AppBar, Toolbar } from '@mui/material';
+import { Box, Container, Typography, Paper } from '@mui/material';
 
 export default function Home() {
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Material UI Hello World
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
+      }}
+    >
+      <Container maxWidth="sm">
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            textAlign: 'center',
+            borderRadius: 4,
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <Typography 
+            variant="h2" 
+            component="h1" 
+            gutterBottom
+            sx={{
+              fontWeight: 'bold',
+              background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
+              backgroundClip: 'text',
+              textFillColor: 'transparent',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Hello World!
           </Typography>
-          <Button color="inherit">Login</Button>
-        </Toolbar>
-      </AppBar>
-      <Container sx={{ mt: 4 }}>
-        <Typography variant="h2" component="h1" gutterBottom>
-          Hello World!
-        </Typography>
-        <Typography variant="body1" paragraph>
-          This is a simple Material UI application created with Next.js.
-        </Typography>
-        <Button variant="contained" color="primary">
-          Click Me
-        </Button>
+          <Typography variant="h5" color="text.secondary" sx={{ mt: 2 }}>
+            Welcome to Next.js with Material UI
+          </Typography>
+        </Paper>
       </Container>
     </Box>
   );
