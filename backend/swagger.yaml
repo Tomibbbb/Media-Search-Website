@@ -1,0 +1,205 @@
+openapi: 3.0.0
+paths:
+  /api:
+    get:
+      operationId: AppController_getHello
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - App
+  /api/users/profile:
+    get:
+      operationId: UsersController_getProfile
+      parameters: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: 60d21b4667d0d8992e610c85
+                  firstName:
+                    type: string
+                    example: John
+                  lastName:
+                    type: string
+                    example: Doe
+                  email:
+                    type: string
+                    example: john.doe@example.com
+        '401':
+          description: Unauthorized - invalid or expired token
+      security:
+        - bearer: []
+      summary: Get user profile (protected route)
+      tags:
+        - users
+  /api/auth/register:
+    post:
+      operationId: AuthController_register
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDto'
+      responses:
+        '201':
+          description: User has been successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 60d21b4667d0d8992e610c85
+                      firstName:
+                        type: string
+                        example: John
+                      lastName:
+                        type: string
+                        example: Doe
+                      email:
+                        type: string
+                        example: john.doe@example.com
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Bad request - validation failed
+        '409':
+          description: Email already exists
+      summary: Register a new user
+      tags: &ref_0
+        - auth
+  /api/auth/login:
+    post:
+      operationId: AuthController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUserDto'
+      responses:
+        '200':
+          description: User has been successfully logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 60d21b4667d0d8992e610c85
+                      firstName:
+                        type: string
+                        example: John
+                      lastName:
+                        type: string
+                        example: Doe
+                      email:
+                        type: string
+                        example: john.doe@example.com
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Bad request - validation failed
+        '401':
+          description: Invalid credentials
+      summary: Log in with email and password
+      tags: *ref_0
+  /api/auth/verify-token:
+    get:
+      operationId: AuthController_verifyToken
+      parameters: []
+      responses:
+        '200':
+          description: Token is valid
+        '401':
+          description: Invalid token
+      security:
+        - bearer: []
+      summary: Verify JWT token is valid (for testing)
+      tags: *ref_0
+info:
+  title: NestJS API
+  description: The NestJS API documentation
+  version: '1.0'
+  contact: {}
+tags:
+  - name: auth
+    description: Authentication endpoints
+  - name: users
+    description: User endpoints
+  - name: documentation
+    description: API Documentation endpoints
+servers: []
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+  schemas:
+    CreateUserDto:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: The first name of the user
+          example: John
+        lastName:
+          type: string
+          description: The last name of the user
+          example: Doe
+        email:
+          type: string
+          description: The email address of the user
+          example: john.doe@example.com
+        password:
+          type: string
+          description: The password for the user account (min 6 characters)
+          example: password123
+          minLength: 6
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+    LoginUserDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: The email address of the user
+          example: john.doe@example.com
+        password:
+          type: string
+          description: The password for the user account
+          example: password123
+      required:
+        - email
+        - password
