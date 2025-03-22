@@ -1,0 +1,12 @@
+@startuml
+  actor User
+  participant "Frontend" as F
+  participant "Backend" as B
+  database "Database" as DB
+
+  User -> F: Enter registration details
+  F -> B: Register request
+  B -> DB: Create user
+  B -> F: Return success with token
+  F -> User: Show success message
+  @enduml

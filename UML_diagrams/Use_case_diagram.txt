@@ -1,0 +1,22 @@
+@startuml
+  left to right direction
+  actor User
+
+  rectangle "Media Search Application" {
+    usecase "Register/Login" as UC1
+    usecase "Search Media" as UC2
+    usecase "Save Searches" as UC3
+    usecase "View Saved Searches" as UC4
+    usecase "View Media Details" as UC5
+  }
+
+  
+  User --> UC2
+  UC2 --> UC3
+  User --> UC4
+  UC2 --> UC5
+
+  UC3 ..> UC1 : <<requires>>
+  UC4 ..> UC1 : <<requires>>
+  UC5 ..> UC1 : <<requires>>
+  @enduml

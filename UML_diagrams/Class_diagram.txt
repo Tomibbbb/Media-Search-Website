@@ -1,0 +1,52 @@
+@startuml
+  ' Frontend classes
+  class UserInterface {
+    + login()
+    + register()
+    + searchMedia()
+    + viewSavedSearches()
+    + playMedia()
+  }
+
+  ' Backend classes
+  class AuthController {
+    + register()
+    + login()
+  }
+
+  class SearchController {
+    + searchMedia()
+    + saveSearch()
+    + getSavedSearches()
+  }
+
+  class User {
+    - email
+    - password
+    - name
+  }
+
+  class SavedSearch {
+    - query
+    - filters
+    - userId
+  }
+
+  class MediaItem {
+    - title
+    - url
+    - creator
+    - thumbnailUrl
+  }
+
+  ' External service
+  interface "Openverse API" as OpenverseAPI
+
+  ' Relationships
+  UserInterface --> AuthController
+  UserInterface --> SearchController
+  AuthController --> User
+  SearchController --> SavedSearch
+  SearchController --> MediaItem
+  SearchController --> OpenverseAPI
+  @enduml
