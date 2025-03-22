@@ -1,8 +1,12 @@
 'use client';
 
-import { Box, Container, Typography, Paper } from '@mui/material';
+import { Box, Container, Typography, Paper, Button, Stack } from '@mui/material';
+import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Home() {
+  const { isAuthenticated, user } = useAuth();
+
   return (
     <Box
       sx={{
@@ -37,11 +41,52 @@ export default function Home() {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Hello World!
+            Welcome!
           </Typography>
-          <Typography variant="h5" color="text.secondary" sx={{ mt: 2 }}>
-            Welcome to Next.js with Material UI
-          </Typography>
+
+          {isAuthenticated && user ? (
+            <>
+              <Typography variant="h5" sx={{ mb: 3 }}>
+                Hello, {user.firstName}!
+              </Typography>
+              <Button 
+                component={Link}
+                href="/profile" 
+                variant="contained" 
+                size="large"
+                sx={{ mt: 2 }}
+              >
+                View Profile
+              </Button>
+            </>
+          ) : (
+            <>
+              <Typography variant="h5" color="text.secondary" sx={{ mb: 4 }}>
+                Please login or register to continue
+              </Typography>
+              
+              <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
+                <Button 
+                  component={Link}
+                  href="/login" 
+                  variant="contained" 
+                  size="large"
+                  sx={{ px: 4 }}
+                >
+                  Login
+                </Button>
+                <Button 
+                  component={Link}
+                  href="/register" 
+                  variant="outlined" 
+                  size="large"
+                  sx={{ px: 4 }}
+                >
+                  Register
+                </Button>
+              </Stack>
+            </>
+          )}
         </Paper>
       </Container>
     </Box>

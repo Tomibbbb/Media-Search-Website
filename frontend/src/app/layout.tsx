@@ -1,15 +1,11 @@
 'use client';
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { AuthProvider } from '../contexts/AuthContext';
+import theme from '../theme';
 import "./globals.css";
-
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-  },
-});
 
 export default function RootLayout({
   children,
@@ -22,7 +18,9 @@ export default function RootLayout({
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            {children}
+            <AuthProvider>
+              {children}
+            </AuthProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>
