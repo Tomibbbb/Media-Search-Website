@@ -144,6 +144,202 @@ paths:
         - bearer: []
       summary: Verify JWT token is valid (for testing)
       tags: *ref_0
+  /api/openverse/images:
+    get:
+      operationId: OpenverseController_searchImages
+      parameters:
+        - name: q
+          required: true
+          in: query
+          description: Search query for images
+          schema:
+            example: mountain
+            type: string
+        - name: page_size
+          required: false
+          in: query
+          description: The number of results to return per page
+          schema:
+            default: 20
+            example: 20
+            type: number
+        - name: page
+          required: false
+          in: query
+          description: The page number to return
+          schema:
+            default: 1
+            example: 1
+            type: number
+        - name: license
+          required: false
+          in: query
+          description: Filter by license type
+          schema:
+            $ref: '#/components/schemas/ImageLicense'
+        - name: category
+          required: false
+          in: query
+          description: Filter by image category
+          schema:
+            $ref: '#/components/schemas/ImageCategory'
+        - name: source
+          required: false
+          in: query
+          description: Filter by image source
+          schema:
+            example: flickr
+            type: string
+        - name: creator
+          required: false
+          in: query
+          description: Filter by image creator
+          schema:
+            example: John Doe
+            type: string
+        - name: tags
+          required: false
+          in: query
+          description: Filter by tags
+          schema:
+            example: nature,landscape
+            type: string
+      responses:
+        '200':
+          description: Returns a paginated list of images
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+      security: &ref_1
+        - bearer: []
+      summary: Search for images in Openverse
+      tags: &ref_2
+        - openverse
+  /api/openverse/images/{id}:
+    get:
+      operationId: OpenverseController_getImage
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Image ID
+          schema:
+            example: 0dbc5647-8551-4e94-a123-58e8e0255349
+            type: string
+      responses:
+        '200':
+          description: Returns a single image
+        '401':
+          description: Unauthorized
+        '404':
+          description: Image not found
+        '500':
+          description: Internal server error
+      security: *ref_1
+      summary: Get a specific image by ID
+      tags: *ref_2
+  /api/openverse/audio:
+    get:
+      operationId: OpenverseController_searchAudio
+      parameters:
+        - name: q
+          required: true
+          in: query
+          description: Search query for audio
+          schema:
+            example: piano
+            type: string
+        - name: page_size
+          required: false
+          in: query
+          description: The number of results to return per page
+          schema:
+            default: 20
+            example: 20
+            type: number
+        - name: page
+          required: false
+          in: query
+          description: The page number to return
+          schema:
+            default: 1
+            example: 1
+            type: number
+        - name: license
+          required: false
+          in: query
+          description: Filter by license type
+          schema:
+            $ref: '#/components/schemas/AudioLicense'
+        - name: source
+          required: false
+          in: query
+          description: Filter by audio source
+          schema:
+            example: jamendo
+            type: string
+        - name: creator
+          required: false
+          in: query
+          description: Filter by audio creator
+          schema:
+            example: John Doe
+            type: string
+        - name: genres
+          required: false
+          in: query
+          description: Filter by audio genre
+          schema:
+            example: classical
+            type: string
+        - name: duration
+          required: false
+          in: query
+          description: Filter by duration
+          schema:
+            example: 0-300
+            type: string
+        - name: tags
+          required: false
+          in: query
+          description: Filter by tags
+          schema:
+            example: music,instrumental
+            type: string
+      responses:
+        '200':
+          description: Returns a paginated list of audio files
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+      security: *ref_1
+      summary: Search for audio in Openverse
+      tags: *ref_2
+  /api/openverse/audio/{id}:
+    get:
+      operationId: OpenverseController_getAudio
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Audio ID
+          schema:
+            example: 4fe9f628-5712-49dd-a3c7-89f1f04a3ce7
+            type: string
+      responses:
+        '200':
+          description: Returns a single audio file
+        '401':
+          description: Unauthorized
+        '404':
+          description: Audio not found
+        '500':
+          description: Internal server error
+      security: *ref_1
+      summary: Get a specific audio file by ID
+      tags: *ref_2
 info:
   title: NestJS API
   description: The NestJS API documentation
@@ -154,6 +350,8 @@ tags:
     description: Authentication endpoints
   - name: users
     description: User endpoints
+  - name: openverse
+    description: Openverse media API endpoints
   - name: documentation
     description: API Documentation endpoints
 servers: []
@@ -203,3 +401,31 @@ components:
       required:
         - email
         - password
+    ImageLicense:
+      type: string
+      enum:
+        - by
+        - by-sa
+        - by-nc
+        - by-nd
+        - by-nc-sa
+        - by-nc-nd
+        - pdm
+        - cc0
+    ImageCategory:
+      type: string
+      enum:
+        - photograph
+        - illustration
+        - digitized_artwork
+    AudioLicense:
+      type: string
+      enum:
+        - by
+        - by-sa
+        - by-nc
+        - by-nd
+        - by-nc-sa
+        - by-nc-nd
+        - pdm
+        - cc0

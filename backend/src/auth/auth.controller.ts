@@ -1,15 +1,24 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Request } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiResponse, 
-  ApiBody, 
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Get,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiConflictResponse,
-  ApiBearerAuth
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -24,7 +33,7 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: CreateUserDto })
-  @ApiCreatedResponse({ 
+  @ApiCreatedResponse({
     description: 'User has been successfully registered',
     schema: {
       type: 'object',
@@ -37,11 +46,14 @@ export class AuthController {
             firstName: { type: 'string', example: 'John' },
             lastName: { type: 'string', example: 'Doe' },
             email: { type: 'string', example: 'john.doe@example.com' },
-          }
+          },
         },
-        token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }
-      }
-    }
+        token: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+      },
+    },
   })
   @ApiBadRequestResponse({ description: 'Bad request - validation failed' })
   @ApiConflictResponse({ description: 'Email already exists' })
@@ -58,7 +70,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Log in with email and password' })
   @ApiBody({ type: LoginUserDto })
-  @ApiOkResponse({ 
+  @ApiOkResponse({
     description: 'User has been successfully logged in',
     schema: {
       type: 'object',
@@ -71,11 +83,14 @@ export class AuthController {
             firstName: { type: 'string', example: 'John' },
             lastName: { type: 'string', example: 'Doe' },
             email: { type: 'string', example: 'john.doe@example.com' },
-          }
+          },
         },
-        token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }
-      }
-    }
+        token: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+      },
+    },
   })
   @ApiBadRequestResponse({ description: 'Bad request - validation failed' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })

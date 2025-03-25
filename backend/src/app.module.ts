@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { OpenverseModule } from './openverse/openverse.module';
 
 @Module({
   imports: [
@@ -15,11 +16,14 @@ import { AuthModule } from './auth/auth.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/myapp',
+        uri:
+          configService.get<string>('MONGODB_URI') ||
+          'mongodb://localhost:27017/myapp',
       }),
     }),
     UsersModule,
     AuthModule,
+    OpenverseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

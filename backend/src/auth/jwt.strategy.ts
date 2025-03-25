@@ -21,11 +21,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     try {
       // Find user by id from JWT payload
       const user = await this.usersService.findById(payload.sub);
-      
+
       if (!user) {
         throw new UnauthorizedException('User not found');
       }
-      
+
       // Return user object (without password) to be injected into request
       const userObj = user.toObject();
       const { password, ...userWithoutPassword } = userObj;

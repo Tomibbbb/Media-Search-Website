@@ -1,10 +1,10 @@
 import { Controller, Get, UseGuards, Request } from '@nestjs/common';
-import { 
-  ApiBearerAuth, 
+import {
+  ApiBearerAuth,
   ApiTags,
   ApiOperation,
   ApiOkResponse,
-  ApiUnauthorizedResponse
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsersService } from './users.service';
@@ -18,7 +18,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user profile (protected route)' })
-  @ApiOkResponse({ 
+  @ApiOkResponse({
     description: 'User profile retrieved successfully',
     schema: {
       type: 'object',
@@ -27,10 +27,12 @@ export class UsersController {
         firstName: { type: 'string', example: 'John' },
         lastName: { type: 'string', example: 'Doe' },
         email: { type: 'string', example: 'john.doe@example.com' },
-      }
-    }
+      },
+    },
   })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized - invalid or expired token' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized - invalid or expired token',
+  })
   getProfile(@Request() req) {
     // The user is automatically attached to the request by the JwtAuthGuard
     return req.user;

@@ -19,17 +19,23 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async register(createUserDto: CreateUserDto): Promise<{ user: Partial<User>; token: string }> {
+  async register(
+    createUserDto: CreateUserDto,
+  ): Promise<{ user: Partial<User>; token: string }> {
     // Create a new user with hashed password
     const user = await this.usersService.create(createUserDto);
 
     // Create a JWT token for the new user
     const payload = { sub: user._id.toString(), email: user.email };
-    this.logger.debug(`Generated JWT payload for user: ${JSON.stringify(payload)}`);
-    
+    this.logger.debug(
+      `Generated JWT payload for user: ${JSON.stringify(payload)}`,
+    );
+
     const secret = this.configService.get<string>('JWT_SECRET');
-    this.logger.debug(`JWT Secret length: ${secret ? secret.length : 0} characters`);
-    
+    this.logger.debug(
+      `JWT Secret length: ${secret ? secret.length : 0} characters`,
+    );
+
     const token = this.jwtService.sign(payload);
     this.logger.debug(`JWT token generated successfully`);
 
@@ -37,21 +43,26 @@ export class AuthService {
     try {
       await this.emailService.sendRegistrationEmail(user.email, user.firstName);
     } catch (error) {
-      this.logger.error(`Error sending registration email: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error sending registration email: ${error.message}`,
+        error.stack,
+      );
       // We don't throw here to avoid blocking the registration process
     }
 
     // Return user (without password) and token
     const userObj = user.toObject();
     const { password, ...userWithoutPassword } = userObj;
-    
+
     return {
       user: userWithoutPassword,
       token,
     };
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<{ user: Partial<User>; token: string }> {
+  async login(
+    loginUserDto: LoginUserDto,
+  ): Promise<{ user: Partial<User>; token: string }> {
     try {
       // Find user by email
       const user = await this.usersService.findByEmail(loginUserDto.email);
@@ -76,7 +87,9 @@ export class AuthService {
       // Verify token right after creation to ensure it works
       try {
         const verified = this.jwtService.verify(token);
-        this.logger.debug(`Token verified successfully: ${JSON.stringify(verified)}`);
+        this.logger.debug(
+          `Token verified successfully: ${JSON.stringify(verified)}`,
+        );
       } catch (error) {
         this.logger.error(`Token verification failed: ${error.message}`);
         throw new Error(`Failed to verify token: ${error.message}`);
@@ -85,7 +98,7 @@ export class AuthService {
       // Return user (without password) and token
       const userObj = user.toObject();
       const { password, ...userWithoutPassword } = userObj;
-      
+
       return {
         user: userWithoutPassword,
         token,
