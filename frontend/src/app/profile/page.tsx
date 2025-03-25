@@ -10,7 +10,8 @@ import {
   Button, 
   Avatar,
   CircularProgress,
-  Divider
+  Divider,
+  Grid
 } from '@mui/material';
 import { PersonOutline as PersonIcon } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
@@ -98,6 +99,36 @@ export default function ProfilePage() {
             <Typography variant="body1">
               {user._id}
             </Typography>
+          </Box>
+          
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Explore Openverse Media
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                  onClick={() => router.push('/images')}
+                  sx={{ mb: 1 }}
+                >
+                  Search Images
+                </Button>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                  onClick={() => router.push('/audio')}
+                  sx={{ mb: 1 }}
+                >
+                  Search Audio
+                </Button>
+              </Grid>
+            </Grid>
           </Box>
           
           <Box>

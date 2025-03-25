@@ -49,15 +49,37 @@ export default function Home() {
               <Typography variant="h5" sx={{ mb: 3 }}>
                 Hello, {user.firstName}!
               </Typography>
-              <Button 
-                component={Link}
-                href="/profile" 
-                variant="contained" 
-                size="large"
-                sx={{ mt: 2 }}
-              >
-                View Profile
-              </Button>
+              <Stack spacing={2} sx={{ mt: 3 }}>
+                <Button 
+                  component={Link}
+                  href="/profile" 
+                  variant="contained" 
+                  size="large"
+                  fullWidth
+                >
+                  View Profile
+                </Button>
+                <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+                  <Button 
+                    component={Link}
+                    href="/images" 
+                    variant="outlined" 
+                    size="large"
+                    fullWidth
+                  >
+                    Search Images
+                  </Button>
+                  <Button 
+                    component={Link}
+                    href="/audio" 
+                    variant="outlined" 
+                    size="large"
+                    fullWidth
+                  >
+                    Search Audio
+                  </Button>
+                </Stack>
+              </Stack>
             </>
           ) : (
             <>

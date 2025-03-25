@@ -52,14 +52,14 @@ export class OpenverseService {
         this.httpService
           .post<OpenverseAuthResponse>(
             `${this.baseUrl}/auth_tokens/token/`,
-            {
+            new URLSearchParams({
               client_id: clientId,
               client_secret: clientSecret,
               grant_type: 'client_credentials',
-            },
+            }),
             {
               headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
               },
             },
           )
