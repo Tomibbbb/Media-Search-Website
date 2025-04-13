@@ -120,13 +120,32 @@ export default function ImageDetailsPage() {
       background: 'linear-gradient(45deg, #E3F2FD 30%, #BBDEFB 90%)',
     }}>
       <Container maxWidth="lg">
-        <Button 
-          startIcon={<ArrowBackIcon />} 
-          onClick={handleBack}
-          sx={{ mb: 3 }}
-        >
-          Back to Search
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+          <Button 
+            startIcon={<ArrowBackIcon />} 
+            onClick={handleBack}
+            variant="contained"
+          >
+            Back to Search
+          </Button>
+          <Box>
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => router.push('/')}
+              sx={{ mr: 2 }}
+            >
+              Home
+            </Button>
+            <Button 
+              variant="contained" 
+              color="secondary"
+              onClick={() => router.push('/profile')}
+            >
+              Profile
+            </Button>
+          </Box>
+        </Box>
 
         <Paper elevation={2} sx={{ overflow: 'hidden', borderRadius: 2 }}>
           <Grid container>

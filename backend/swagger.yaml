@@ -38,8 +38,96 @@ paths:
       security:
         - bearer: []
       summary: Get user profile (protected route)
-      tags:
+      tags: &ref_0
         - users
+  /api/users/saved-searches:
+    get:
+      operationId: UsersController_getSavedSearches
+      parameters: []
+      responses:
+        '200':
+          description: Saved searches retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SavedSearch'
+        '401':
+          description: Unauthorized - invalid or expired token
+      security:
+        - bearer: []
+      summary: Get user saved searches
+      tags: *ref_0
+    post:
+      operationId: UsersController_addSavedSearch
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - query
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - image
+                    - audio
+                  example: image
+                query:
+                  type: string
+                  example: nature
+                filters:
+                  type: object
+                  example:
+                    license: by
+                    category: photograph
+      responses:
+        '201':
+          description: Search saved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SavedSearch'
+        '401':
+          description: Unauthorized - invalid or expired token
+      security:
+        - bearer: []
+      summary: Save a new search
+      tags: *ref_0
+  /api/users/saved-searches/{index}:
+    delete:
+      operationId: UsersController_deleteSavedSearch
+      parameters:
+        - name: index
+          required: true
+          in: path
+          description: Index of the search to delete
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Search deleted successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SavedSearch'
+        '401':
+          description: Unauthorized - invalid or expired token
+        '404':
+          description: Saved search not found
+      security:
+        - bearer: []
+      summary: Delete a saved search by index
+      tags: *ref_0
   /api/auth/register:
     post:
       operationId: AuthController_register
@@ -84,7 +172,7 @@ paths:
         '409':
           description: Email already exists
       summary: Register a new user
-      tags: &ref_0
+      tags: &ref_1
         - auth
   /api/auth/login:
     post:
@@ -130,7 +218,7 @@ paths:
         '401':
           description: Invalid credentials
       summary: Log in with email and password
-      tags: *ref_0
+      tags: *ref_1
   /api/auth/verify-token:
     get:
       operationId: AuthController_verifyToken
@@ -143,7 +231,7 @@ paths:
       security:
         - bearer: []
       summary: Verify JWT token is valid (for testing)
-      tags: *ref_0
+      tags: *ref_1
   /api/openverse/images:
     get:
       operationId: OpenverseController_searchImages
@@ -211,10 +299,10 @@ paths:
           description: Unauthorized
         '500':
           description: Internal server error
-      security: &ref_1
+      security: &ref_2
         - bearer: []
       summary: Search for images in Openverse
-      tags: &ref_2
+      tags: &ref_3
         - openverse
   /api/openverse/images/{id}:
     get:
@@ -236,9 +324,9 @@ paths:
           description: Image not found
         '500':
           description: Internal server error
-      security: *ref_1
+      security: *ref_2
       summary: Get a specific image by ID
-      tags: *ref_2
+      tags: *ref_3
   /api/openverse/audio:
     get:
       operationId: OpenverseController_searchAudio
@@ -314,9 +402,9 @@ paths:
           description: Unauthorized
         '500':
           description: Internal server error
-      security: *ref_1
+      security: *ref_2
       summary: Search for audio in Openverse
-      tags: *ref_2
+      tags: *ref_3
   /api/openverse/audio/{id}:
     get:
       operationId: OpenverseController_getAudio
@@ -337,9 +425,9 @@ paths:
           description: Audio not found
         '500':
           description: Internal server error
-      security: *ref_1
+      security: *ref_2
       summary: Get a specific audio file by ID
-      tags: *ref_2
+      tags: *ref_3
 info:
   title: NestJS API
   description: The NestJS API documentation
@@ -362,6 +450,36 @@ components:
       bearerFormat: JWT
       type: http
   schemas:
+    SavedSearch:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Type of search (image or audio)
+          example: image
+          enum:
+            - image
+            - audio
+        query:
+          type: string
+          description: Search query
+          example: nature
+        filters:
+          type: object
+          description: Search filters
+          example:
+            license: by
+            category: photograph
+        createdAt:
+          format: date-time
+          type: string
+          description: When the search was saved
+          example: '2023-01-01T00:00:00.000Z'
+      required:
+        - type
+        - query
+        - filters
+        - createdAt
     CreateUserDto:
       type: object
       properties:

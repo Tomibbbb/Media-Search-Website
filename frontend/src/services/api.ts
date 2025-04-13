@@ -1,6 +1,3 @@
-// API service for authentication and user-related operations
-
-// Types based on Swagger definitions
 export interface CreateUserDto {
   firstName: string;
   lastName: string;
@@ -26,7 +23,14 @@ export interface AuthResponse {
   token: string;
 }
 
-// Openverse API interfaces
+export interface RecentSearch {
+  id: string;
+  type: 'image' | 'audio';
+  query: string;
+  filters?: Record<string, any>;
+  timestamp: number;
+}
+
 export interface ImageSearchParams {
   q: string;
   page_size?: number;
@@ -97,18 +101,94 @@ export interface SearchResponse<T> {
   results: T[];
 }
 
-// Base API URL - should be configured based on environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-// Shared function to create authenticated request headers
 const createAuthHeaders = (token: string) => ({
   'Authorization': `Bearer ${token}`,
   'Content-Type': 'application/json',
 });
 
-// Authentication API calls
+const MAX_RECENT_SEARCHES = 10;
+
+export const recentSearchesService = {
+  getRecentSearches: (): RecentSearch[] => {
+    if (typeof window === 'undefined') return [];
+    
+    try {
+      const storedSearches = localStorage.getItem('recentSearches');
+      if (storedSearches) {
+        return JSON.parse(storedSearches);
+      }
+    } catch (error) {
+      console.error('Error retrieving recent searches:', error);
+    }
+    
+    return [];
+  },
+  
+  addRecentSearch: (type: 'image' | 'audio', query: string, filters?: Record<string, any>): RecentSearch[] => {
+    if (typeof window === 'undefined') return [];
+    
+    try {
+      const searches = recentSearchesService.getRecentSearches();
+      
+      const newSearch: RecentSearch = {
+        id: Date.now().toString(),
+        type,
+        query,
+        filters,
+        timestamp: Date.now()
+      };
+      
+      const existingIndex = searches.findIndex(
+        search => search.type === type && search.query === query
+      );
+      
+      if (existingIndex !== -1) {
+        searches.splice(existingIndex, 1);
+      }
+      
+      searches.unshift(newSearch);
+      
+      const limitedSearches = searches.slice(0, MAX_RECENT_SEARCHES);
+      
+      localStorage.setItem('recentSearches', JSON.stringify(limitedSearches));
+      
+      return limitedSearches;
+    } catch (error) {
+      console.error('Error adding recent search:', error);
+      return [];
+    }
+  },
+  
+  deleteRecentSearch: (id: string): RecentSearch[] => {
+    if (typeof window === 'undefined') return [];
+    
+    try {
+      const searches = recentSearchesService.getRecentSearches();
+      const updatedSearches = searches.filter(search => search.id !== id);
+      
+      localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
+      
+      return updatedSearches;
+    } catch (error) {
+      console.error('Error deleting recent search:', error);
+      return [];
+    }
+  },
+  
+  clearRecentSearches: (): void => {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      localStorage.removeItem('recentSearches');
+    } catch (error) {
+      console.error('Error clearing recent searches:', error);
+    }
+  }
+};
+
 export const authApi = {
-  // Register a new user
   register: async (userData: CreateUserDto): Promise<AuthResponse> => {
     const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
@@ -126,7 +206,6 @@ export const authApi = {
     return response.json();
   },
 
-  // Login user
   login: async (credentials: LoginUserDto): Promise<AuthResponse> => {
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
@@ -144,7 +223,6 @@ export const authApi = {
     return response.json();
   },
 
-  // Verify token is valid
   verifyToken: async (token: string): Promise<boolean> => {
     try {
       const response = await fetch(`${API_URL}/api/auth/verify-token`, {
@@ -158,7 +236,6 @@ export const authApi = {
     }
   },
 
-  // Get user profile
   getProfile: async (token: string): Promise<UserProfile> => {
     const response = await fetch(`${API_URL}/api/users/profile`, {
       headers: {
@@ -175,11 +252,8 @@ export const authApi = {
   },
 };
 
-// Openverse API calls
 export const openverseApi = {
-  // Search for images
   searchImages: async (params: ImageSearchParams, token: string): Promise<SearchResponse<ImageItem>> => {
-    // Create query string from params
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -195,11 +269,22 @@ export const openverseApi = {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to search images');
     }
+    
+    if (params.q) {
+      const { q, license, category, source, creator, tags } = params;
+      const filters: Record<string, any> = {};
+      if (license) filters.license = license;
+      if (category) filters.category = category;
+      if (source) filters.source = source;
+      if (creator) filters.creator = creator;
+      if (tags) filters.tags = tags;
+      
+      recentSearchesService.addRecentSearch('image', q, Object.keys(filters).length > 0 ? filters : undefined);
+    }
 
     return response.json();
   },
 
-  // Get image by ID
   getImage: async (id: string, token: string): Promise<ImageItem> => {
     const response = await fetch(`${API_URL}/api/openverse/images/${id}`, {
       headers: createAuthHeaders(token),
@@ -213,9 +298,7 @@ export const openverseApi = {
     return response.json();
   },
 
-  // Search for audio
   searchAudio: async (params: AudioSearchParams, token: string): Promise<SearchResponse<AudioItem>> => {
-    // Create query string from params
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -231,11 +314,23 @@ export const openverseApi = {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to search audio');
     }
+    
+    if (params.q) {
+      const { q, license, source, creator, genres, duration, tags } = params;
+      const filters: Record<string, any> = {};
+      if (license) filters.license = license;
+      if (source) filters.source = source;
+      if (creator) filters.creator = creator;
+      if (genres) filters.genres = genres;
+      if (duration) filters.duration = duration;
+      if (tags) filters.tags = tags;
+      
+      recentSearchesService.addRecentSearch('audio', q, Object.keys(filters).length > 0 ? filters : undefined);
+    }
 
     return response.json();
   },
 
-  // Get audio by ID
   getAudio: async (id: string, token: string): Promise<AudioItem> => {
     const response = await fetch(`${API_URL}/api/openverse/audio/${id}`, {
       headers: createAuthHeaders(token),

@@ -102,15 +102,22 @@ export default function AudioDetailsPage() {
         }
       };
       
+      const onError = (e: ErrorEvent) => {
+        console.error("Audio playback error:", e);
+        setError("Failed to load audio. Please try again later.");
+      };
+      
       audioRef.current.addEventListener('loadedmetadata', onLoadedMetadata);
       audioRef.current.addEventListener('timeupdate', onTimeUpdate);
       audioRef.current.addEventListener('ended', onEnded);
+      audioRef.current.addEventListener('error', onError as EventListener);
       
       return () => {
         if (audioRef.current) {
           audioRef.current.removeEventListener('loadedmetadata', onLoadedMetadata);
           audioRef.current.removeEventListener('timeupdate', onTimeUpdate);
           audioRef.current.removeEventListener('ended', onEnded);
+          audioRef.current.removeEventListener('error', onError as EventListener);
         }
       };
     }
@@ -226,13 +233,32 @@ export default function AudioDetailsPage() {
       background: 'linear-gradient(45deg, #EDE7F6 30%, #D1C4E9 90%)',
     }}>
       <Container maxWidth="lg">
-        <Button 
-          startIcon={<ArrowBackIcon />} 
-          onClick={handleBack}
-          sx={{ mb: 3 }}
-        >
-          Back to Search
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+          <Button 
+            startIcon={<ArrowBackIcon />} 
+            onClick={handleBack}
+            variant="contained"
+          >
+            Back to Search
+          </Button>
+          <Box>
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => router.push('/')}
+              sx={{ mr: 2 }}
+            >
+              Home
+            </Button>
+            <Button 
+              variant="contained" 
+              color="secondary"
+              onClick={() => router.push('/profile')}
+            >
+              Profile
+            </Button>
+          </Box>
+        </Box>
 
         <audio ref={audioRef} style={{ display: 'none' }} />
 

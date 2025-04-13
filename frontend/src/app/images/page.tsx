@@ -21,11 +21,16 @@ import {
   MenuItem,
   Pagination,
   Stack,
-  Button
+  Button,
+  Snackbar,
+  Alert
 } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
+import { 
+  Search as SearchIcon,
+  BookmarkAdd as BookmarkAddIcon 
+} from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { openverseApi, ImageSearchParams, ImageItem } from '../../services/api';
+import { openverseApi, ImageSearchParams, ImageItem, authApi } from '../../services/api';
 
 export default function ImagesPage() {
   const { isAuthenticated, isLoading, token } = useAuth();
@@ -37,6 +42,8 @@ export default function ImagesPage() {
   const [searching, setSearching] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -44,6 +51,38 @@ export default function ImagesPage() {
       router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
+  
+  // Check URL for search parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isAuthenticated && token) {
+      const url = new URL(window.location.href);
+      const queryParam = url.searchParams.get('q');
+      
+      if (queryParam) {
+        // Extract all parameters from URL
+        const params: ImageSearchParams = { q: queryParam, page: 1, page_size: 12 };
+        
+        // Optional params
+        const license = url.searchParams.get('license');
+        const category = url.searchParams.get('category');
+        const source = url.searchParams.get('source');
+        const creator = url.searchParams.get('creator');
+        const tags = url.searchParams.get('tags');
+        
+        if (license) params.license = license as any;
+        if (category) params.category = category as any;
+        if (source) params.source = source;
+        if (creator) params.creator = creator;
+        if (tags) params.tags = tags;
+        
+        // Update state
+        setSearchParams(params);
+        
+        // Execute search
+        performSearch(params);
+      }
+    }
+  }, [isAuthenticated, token]);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,6 +144,35 @@ export default function ImagesPage() {
   const handleImageClick = (id: string) => {
     router.push(`/images/${id}`);
   };
+  
+  // Save the current search
+  const handleSaveSearch = async () => {
+    if (!token || !searchParams.q) return;
+    
+    // Extract relevant filters
+    const filters: Record<string, any> = {};
+    if (searchParams.license) filters.license = searchParams.license;
+    if (searchParams.category) filters.category = searchParams.category;
+    
+    try {
+      await authApi.saveSearch(token, {
+        type: 'image',
+        query: searchParams.q,
+        filters: Object.keys(filters).length > 0 ? filters : undefined
+      });
+      
+      setSaveSuccess(true);
+      setSaveError(null);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save search');
+      console.error('Error saving search:', err);
+    }
+  };
+  
+  // Handle closing the success snackbar
+  const handleCloseSnackbar = () => {
+    setSaveSuccess(false);
+  };
 
   if (isLoading) {
     return (
@@ -121,9 +189,25 @@ export default function ImagesPage() {
       background: 'linear-gradient(45deg, #E3F2FD 30%, #BBDEFB 90%)',
     }}>
       <Container maxWidth="lg">
-        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
-          Openverse Image Search
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={() => router.push('/')}
+          >
+            Back to Home
+          </Button>
+          <Typography variant="h4" component="h1" gutterBottom align="center">
+            Openverse Image Search
+          </Typography>
+          <Button 
+            variant="contained" 
+            color="secondary"
+            onClick={() => router.push('/profile')}
+          >
+            Profile
+          </Button>
+        </Box>
 
         {/* Search Form */}
         <Box 
@@ -214,12 +298,23 @@ export default function ImagesPage() {
         ) : (
           <>
             {searchPerformed && (
-              <Box sx={{ mb: 2 }}>
+              <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1">
                   {totalResults === 0 
                     ? 'No results found' 
                     : `Showing ${(searchParams.page - 1) * (searchParams.page_size || 12) + 1}-${Math.min(searchParams.page * (searchParams.page_size || 12), totalResults)} of ${totalResults} results`}
                 </Typography>
+                
+                {searchParams.q && totalResults > 0 && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleSaveSearch}
+                    startIcon={<BookmarkAddIcon />}
+                  >
+                    Save Search
+                  </Button>
+                )}
               </Box>
             )}
 
@@ -265,6 +360,30 @@ export default function ImagesPage() {
             )}
           </>
         )}
+        
+        {/* Success snackbar */}
+        <Snackbar
+          open={saveSuccess}
+          autoHideDuration={4000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+            Search saved successfully!
+          </Alert>
+        </Snackbar>
+        
+        {/* Error snackbar */}
+        <Snackbar
+          open={!!saveError}
+          autoHideDuration={4000}
+          onClose={() => setSaveError(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setSaveError(null)} severity="error" sx={{ width: '100%' }}>
+            {saveError}
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   );

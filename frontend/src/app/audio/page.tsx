@@ -23,15 +23,18 @@ import {
   Stack,
   Slider,
   CardActions,
-  Button
+  Button,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { 
   Search as SearchIcon,
   PlayArrow as PlayIcon,
-  Pause as PauseIcon
+  Pause as PauseIcon,
+  BookmarkAdd as BookmarkAddIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { openverseApi, AudioSearchParams, AudioItem } from '../../services/api';
+import { openverseApi, AudioSearchParams, AudioItem, authApi } from '../../services/api';
 
 export default function AudioPage() {
   const { isAuthenticated, isLoading, token } = useAuth();
@@ -44,6 +47,8 @@ export default function AudioPage() {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -51,6 +56,40 @@ export default function AudioPage() {
       router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
+  
+  // Check URL for search parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isAuthenticated && token) {
+      const url = new URL(window.location.href);
+      const queryParam = url.searchParams.get('q');
+      
+      if (queryParam) {
+        // Extract all parameters from URL
+        const params: AudioSearchParams = { q: queryParam, page: 1, page_size: 12 };
+        
+        // Optional params
+        const license = url.searchParams.get('license');
+        const genres = url.searchParams.get('genres');
+        const source = url.searchParams.get('source');
+        const creator = url.searchParams.get('creator');
+        const duration = url.searchParams.get('duration');
+        const tags = url.searchParams.get('tags');
+        
+        if (license) params.license = license as any;
+        if (genres) params.genres = genres;
+        if (source) params.source = source;
+        if (creator) params.creator = creator;
+        if (duration) params.duration = duration;
+        if (tags) params.tags = tags;
+        
+        // Update state
+        setSearchParams(params);
+        
+        // Execute search
+        performSearch(params);
+      }
+    }
+  }, [isAuthenticated, token]);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +139,7 @@ export default function AudioPage() {
         }
       }
       
-      // Play new audio
+      // Create or get audio element
       let audioElement = document.getElementById(`audio-${audioId}`) as HTMLAudioElement;
       if (!audioElement) {
         audioElement = document.createElement('audio');
@@ -110,8 +149,21 @@ export default function AudioPage() {
         document.body.appendChild(audioElement);
       }
       
-      audioElement.play();
-      setPlayingAudio(audioId);
+      // Play the audio with error handling
+      const playPromise = audioElement.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Playback started successfully
+            setPlayingAudio(audioId);
+          })
+          .catch(error => {
+            console.error("Audio playback error:", error);
+            // Create an alert to show the error
+            setError(`Couldn't play audio. ${error.message}`);
+          });
+      }
     }
   };
 
@@ -154,6 +206,35 @@ export default function AudioPage() {
   const handleAudioClick = (id: string) => {
     router.push(`/audio/${id}`);
   };
+  
+  // Save the current search
+  const handleSaveSearch = async () => {
+    if (!token || !searchParams.q) return;
+    
+    // Extract relevant filters
+    const filters: Record<string, any> = {};
+    if (searchParams.license) filters.license = searchParams.license;
+    if (searchParams.genres) filters.genres = searchParams.genres;
+    
+    try {
+      await authApi.saveSearch(token, {
+        type: 'audio',
+        query: searchParams.q,
+        filters: Object.keys(filters).length > 0 ? filters : undefined
+      });
+      
+      setSaveSuccess(true);
+      setSaveError(null);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save search');
+      console.error('Error saving search:', err);
+    }
+  };
+  
+  // Handle closing the success snackbar
+  const handleCloseSnackbar = () => {
+    setSaveSuccess(false);
+  };
 
   // Format duration in seconds to MM:SS format
   const formatDuration = (seconds?: number): string => {
@@ -178,9 +259,25 @@ export default function AudioPage() {
       background: 'linear-gradient(45deg, #EDE7F6 30%, #D1C4E9 90%)',
     }}>
       <Container maxWidth="lg">
-        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
-          Openverse Audio Search
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={() => router.push('/')}
+          >
+            Back to Home
+          </Button>
+          <Typography variant="h4" component="h1" gutterBottom align="center">
+            Openverse Audio Search
+          </Typography>
+          <Button 
+            variant="contained" 
+            color="secondary"
+            onClick={() => router.push('/profile')}
+          >
+            Profile
+          </Button>
+        </Box>
 
         {/* Search Form */}
         <Box 
@@ -277,12 +374,23 @@ export default function AudioPage() {
         ) : (
           <>
             {searchPerformed && (
-              <Box sx={{ mb: 2 }}>
+              <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1">
                   {totalResults === 0 
                     ? 'No results found' 
                     : `Showing ${(searchParams.page - 1) * (searchParams.page_size || 12) + 1}-${Math.min(searchParams.page * (searchParams.page_size || 12), totalResults)} of ${totalResults} results`}
                 </Typography>
+                
+                {searchParams.q && totalResults > 0 && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleSaveSearch}
+                    startIcon={<BookmarkAddIcon />}
+                  >
+                    Save Search
+                  </Button>
+                )}
               </Box>
             )}
 
@@ -346,6 +454,30 @@ export default function AudioPage() {
             )}
           </>
         )}
+        
+        {/* Success snackbar */}
+        <Snackbar
+          open={saveSuccess}
+          autoHideDuration={4000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+            Search saved successfully!
+          </Alert>
+        </Snackbar>
+        
+        {/* Error snackbar */}
+        <Snackbar
+          open={!!saveError}
+          autoHideDuration={4000}
+          onClose={() => setSaveError(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setSaveError(null)} severity="error" sx={{ width: '100%' }}>
+            {saveError}
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   );

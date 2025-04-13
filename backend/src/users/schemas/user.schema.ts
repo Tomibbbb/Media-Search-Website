@@ -4,6 +4,33 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export type UserDocument = User & Document;
 
+export class SavedSearch {
+  @ApiProperty({
+    description: 'Type of search (image or audio)',
+    example: 'image',
+    enum: ['image', 'audio']
+  })
+  type: string;
+
+  @ApiProperty({
+    description: 'Search query',
+    example: 'nature'
+  })
+  query: string;
+
+  @ApiProperty({
+    description: 'Search filters',
+    example: { license: 'by', category: 'photograph' }
+  })
+  filters?: Record<string, any>;
+
+  @ApiProperty({
+    description: 'When the search was saved',
+    example: '2023-01-01T00:00:00.000Z'
+  })
+  createdAt: Date;
+}
+
 @Schema({ timestamps: true })
 export class User {
   @ApiProperty({
@@ -39,6 +66,13 @@ export class User {
   })
   @Prop({ required: true })
   password: string;
+
+  @ApiProperty({
+    description: 'User saved searches',
+    type: [SavedSearch]
+  })
+  @Prop({ default: [] })
+  savedSearches: SavedSearch[];
 
   @ApiProperty({
     description: 'When the user was created',
