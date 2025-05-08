@@ -199,7 +199,7 @@ export default function RegisterPage() {
             <GoogleLogin buttonText="Sign up with Google" />
             
             <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-              By signing up with Google, you'll create a new account if one doesn't exist.
+              By signing up with Google, you&apos;ll create a new account if one doesn&apos;t exist.
             </Typography>
             
             <Box sx={{ mt: 2, textAlign: 'center' }}>

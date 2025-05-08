@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button, Box, Typography } from '@mui/material';
-import GoogleIcon from '@mui/icons-material/Google';
 
 interface GoogleLoginProps {
   className?: string;

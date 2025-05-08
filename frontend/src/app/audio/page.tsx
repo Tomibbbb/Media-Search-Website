@@ -13,15 +13,12 @@ import {
   CardMedia, 
   CardActionArea,
   CircularProgress,
-  InputAdornment,
-  IconButton,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Pagination,
   Stack,
-  Slider,
   CardActions,
   Button,
   Snackbar,
@@ -75,7 +72,7 @@ export default function AudioPage() {
         const duration = url.searchParams.get('duration');
         const tags = url.searchParams.get('tags');
         
-        if (license) params.license = license as any;
+        if (license) params.license = license as string;
         if (genres) params.genres = genres;
         if (source) params.source = source;
         if (creator) params.creator = creator;
@@ -89,7 +86,7 @@ export default function AudioPage() {
         performSearch(params);
       }
     }
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, performSearch]);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,17 +94,17 @@ export default function AudioPage() {
   };
 
   // Handle license change
-  const handleLicenseChange = (e: any) => {
-    setSearchParams(prev => ({ ...prev, license: e.target.value, page: 1 }));
+  const handleLicenseChange = (e: React.ChangeEvent<{ value: unknown }>) => {
+    setSearchParams(prev => ({ ...prev, license: e.target.value as string, page: 1 }));
   };
 
   // Handle genres change
-  const handleGenresChange = (e: any) => {
-    setSearchParams(prev => ({ ...prev, genres: e.target.value, page: 1 }));
+  const handleGenresChange = (e: React.ChangeEvent<{ value: unknown }>) => {
+    setSearchParams(prev => ({ ...prev, genres: e.target.value as string, page: 1 }));
   };
 
   // Handle duration range change
-  const handleDurationChange = (e: any, newValue: number | number[]) => {
+  const handleDurationChange = (_e: React.ChangeEvent<{}> | Event, newValue: number | number[]) => {
     // Assuming newValue is [min, max]
     if (Array.isArray(newValue)) {
       const durationStr = `${newValue[0]}-${newValue[1]}`;

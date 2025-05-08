@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginUserDto } from '../users/dto/login-user.dto';
-import { User, UserDocument } from '../users/schemas/user.schema';
+import { User } from '../users/schemas/user.schema';
 import { EmailService } from './email.service';
 
 @Injectable()
@@ -29,12 +29,12 @@ export class AuthService {
 
     try {
       await this.emailService.sendRegistrationEmail(user.email, user.firstName);
-    } catch (error) {
+    } catch (_error) {
       this.logger.error(`Error sending registration email`);
     }
 
     const userObj = user.toObject();
-    const { password, ...userWithoutPassword } = userObj;
+    const { password: _pw, ...userWithoutPassword } = userObj;
 
     return {
       user: userWithoutPassword,
@@ -61,13 +61,13 @@ export class AuthService {
       const token = this.jwtService.sign(payload);
 
       const userObj = user.toObject();
-      const { password, ...userWithoutPassword } = userObj;
+      const { password: _pw, ...userWithoutPassword } = userObj;
 
       return {
         user: userWithoutPassword,
         token,
       };
-    } catch (error) {
+    } catch (_error) {
       throw new UnauthorizedException('Invalid credentials');
     }
   }
@@ -82,12 +82,12 @@ export class AuthService {
       }
       
       return decoded;
-    } catch (error) {
+    } catch (_error) {
       throw new UnauthorizedException('Invalid token');
     }
   }
   
-  async googleLogin(user: any): Promise<{ user: Partial<User>; token: string }> {
+  async googleLogin(user: Record<string, any>): Promise<{ user: Partial<User>; token: string }> {
     if (!user) {
       throw new UnauthorizedException('Google authentication failed: No user data');
     }

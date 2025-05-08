@@ -6,7 +6,6 @@ import {
   Box, 
   Typography, 
   Container, 
-  Card, 
   CardContent,
   CircularProgress,
   Grid,
@@ -16,8 +15,7 @@ import {
   Paper,
   Divider,
   IconButton,
-  Slider,
-  Stack
+  Slider
 } from '@mui/material';
 import { 
   ArrowBack as ArrowBackIcon,
@@ -80,44 +78,39 @@ export default function AudioDetailsPage() {
   // Set up audio player when audio data is loaded
   useEffect(() => {
     if (audio?.audio_url && audioRef.current) {
-      audioRef.current.src = audio.audio_url;
+      // Store a reference to the current audio element
+      const audioElement = audioRef.current;
+      audioElement.src = audio.audio_url;
       
       const onLoadedMetadata = () => {
-        if (audioRef.current) {
-          setDuration(audioRef.current.duration);
-        }
+        setDuration(audioElement.duration);
       };
       
       const onTimeUpdate = () => {
-        if (audioRef.current) {
-          setCurrentTime(audioRef.current.currentTime);
-        }
+        setCurrentTime(audioElement.currentTime);
       };
       
       const onEnded = () => {
         setIsPlaying(false);
         setCurrentTime(0);
-        if (audioRef.current) {
-          audioRef.current.currentTime = 0;
-        }
+        audioElement.currentTime = 0;
       };
       
-      const onError = (e: ErrorEvent) => {
+      const onError = () => {
         setError("Failed to load audio. Please try again later.");
       };
       
-      audioRef.current.addEventListener('loadedmetadata', onLoadedMetadata);
-      audioRef.current.addEventListener('timeupdate', onTimeUpdate);
-      audioRef.current.addEventListener('ended', onEnded);
-      audioRef.current.addEventListener('error', onError as EventListener);
+      audioElement.addEventListener('loadedmetadata', onLoadedMetadata);
+      audioElement.addEventListener('timeupdate', onTimeUpdate);
+      audioElement.addEventListener('ended', onEnded);
+      audioElement.addEventListener('error', onError as EventListener);
       
       return () => {
-        if (audioRef.current) {
-          audioRef.current.removeEventListener('loadedmetadata', onLoadedMetadata);
-          audioRef.current.removeEventListener('timeupdate', onTimeUpdate);
-          audioRef.current.removeEventListener('ended', onEnded);
-          audioRef.current.removeEventListener('error', onError as EventListener);
-        }
+        // Using the stored reference in the cleanup function
+        audioElement.removeEventListener('loadedmetadata', onLoadedMetadata);
+        audioElement.removeEventListener('timeupdate', onTimeUpdate);
+        audioElement.removeEventListener('ended', onEnded);
+        audioElement.removeEventListener('error', onError as EventListener);
       };
     }
   }, [audio]);

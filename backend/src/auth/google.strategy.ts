@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, VerifyCallback } from 'passport-google-oauth20';
+import { Strategy } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 
@@ -24,23 +24,34 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   async validate(
     accessToken: string,
     refreshToken: string,
-    profile: any,
-  ): Promise<any> {
-    const emails = profile.emails || [];
-    const name = profile.name || {};
+    profile: Record<string, any>,
+  ): Promise<Record<string, string>> {
+    const emails = Array.isArray(profile.emails) ? profile.emails : [];
+    const name = profile.name && typeof profile.name === 'object' ? profile.name : {};
     
     if (emails.length === 0) {
       throw new Error('Google authentication failed: No email provided');
     }
     
-    const email = emails[0].value;
-    const firstName = name.givenName || profile.displayName?.split(' ')[0] || 'Google';
-    const lastName = name.familyName || profile.displayName?.split(' ').slice(1).join(' ') || 'User';
+    const email = emails[0] && typeof emails[0].value === 'string' ? emails[0].value : '';
+    
+    const displayName = typeof profile.displayName === 'string' ? profile.displayName : '';
+    const displayNameParts = displayName.split(' ');
+    const firstNameFromDisplay = displayNameParts.length > 0 ? displayNameParts[0] : '';
+    const lastNameFromDisplay = displayNameParts.length > 1 ? displayNameParts.slice(1).join(' ') : '';
+    
+    const firstName = (name.givenName && typeof name.givenName === 'string') 
+      ? name.givenName 
+      : (firstNameFromDisplay || 'Google');
+      
+    const lastName = (name.familyName && typeof name.familyName === 'string')
+      ? name.familyName
+      : (lastNameFromDisplay || 'User');
 
     let user;
     try {
       user = await this.usersService.findByEmail(email);
-    } catch (error) {
+    } catch (_error) {
       const password = this.generateRandomPassword();
       user = await this.usersService.create({
         email,
@@ -50,11 +61,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       });
     }
 
+    if (!user || !user._id) {
+      throw new Error('Failed to retrieve or create user');
+    }
+
     return {
       userId: user._id.toString(),
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      email: user.email || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
     };
   }
 

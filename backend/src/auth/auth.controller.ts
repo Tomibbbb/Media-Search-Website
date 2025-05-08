@@ -9,12 +9,10 @@ import {
   Request,
   Req,
   Res,
-  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -113,7 +111,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify JWT token is valid (for testing)' })
   @ApiOkResponse({ description: 'Token is valid' })
   @ApiUnauthorizedResponse({ description: 'Invalid token' })
-  async verifyToken(@Request() req) {
+  verifyToken(@Request() req) {
     return {
       message: 'Token is valid',
       user: req.user,
@@ -142,10 +140,12 @@ export class AuthController {
       const frontendUrl = this.authService.getFrontendUrl();
       const redirectUrl = `${frontendUrl}/login/success?token=${encodeURIComponent(result.token)}`;
       
-      return res.redirect(redirectUrl);
-    } catch (error) {
+      res.redirect(redirectUrl);
+      return; // explicit return to satisfy TypeScript
+    } catch (_error) {
       const frontendUrl = this.authService.getFrontendUrl();
-      return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+      res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+      return; // explicit return to satisfy TypeScript
     }
   }
 }

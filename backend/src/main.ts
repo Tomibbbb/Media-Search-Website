@@ -70,8 +70,8 @@ async function bootstrap() {
   try {
     const yamlString = yaml.dump(document);
     writeFileSync('./swagger.yaml', yamlString, 'utf8');
-  } catch (error) {
-    // File write errors are non-critical
+  } catch (_error) {
+    // Non-critical error
   }
 
   await app.listen(process.env.PORT ?? 3000);
