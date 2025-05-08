@@ -26,11 +26,7 @@ export class OpenverseService {
     private readonly configService: ConfigService,
   ) {}
 
-  /**
-   * Authenticate with the Openverse API to get an access token
-   */
   private async authenticate(): Promise<string> {
-    // Check if we have a valid token
     if (this.accessToken && this.tokenExpiry && this.tokenExpiry > new Date()) {
       return this.accessToken;
     }
@@ -77,7 +73,6 @@ export class OpenverseService {
           ),
       );
 
-      // Set token and expiration
       this.accessToken = data.access_token;
       const expiresIn = data.expires_in || 86400; // Default to 24 hours if not provided
       this.tokenExpiry = new Date(Date.now() + expiresIn * 1000);
@@ -89,9 +84,6 @@ export class OpenverseService {
     }
   }
 
-  /**
-   * Get authorization headers for API requests
-   */
   private async getAuthHeaders(): Promise<Record<string, string>> {
     const token = await this.authenticate();
     return {
@@ -99,14 +91,10 @@ export class OpenverseService {
     };
   }
 
-  /**
-   * Search for images using the Openverse API
-   */
   async searchImages(searchDto: ImageSearchDto): Promise<PaginatedImageList> {
     try {
       const headers = await this.getAuthHeaders();
 
-      // Build query parameters
       const params: Record<string, string> = {};
       Object.entries(searchDto).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -143,9 +131,6 @@ export class OpenverseService {
     }
   }
 
-  /**
-   * Get a specific image by ID
-   */
   async getImage(id: string): Promise<Image> {
     try {
       const headers = await this.getAuthHeaders();
@@ -182,14 +167,10 @@ export class OpenverseService {
     }
   }
 
-  /**
-   * Search for audio using the Openverse API
-   */
   async searchAudio(searchDto: AudioSearchDto): Promise<PaginatedAudioList> {
     try {
       const headers = await this.getAuthHeaders();
 
-      // Build query parameters
       const params: Record<string, string> = {};
       Object.entries(searchDto).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -225,9 +206,6 @@ export class OpenverseService {
     }
   }
 
-  /**
-   * Get a specific audio file by ID
-   */
   async getAudio(id: string): Promise<Audio> {
     try {
       const headers = await this.getAuthHeaders();

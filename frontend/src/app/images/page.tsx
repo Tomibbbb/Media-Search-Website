@@ -155,17 +155,16 @@ export default function ImagesPage() {
     if (searchParams.category) filters.category = searchParams.category;
     
     try {
-      await authApi.saveSearch(token, {
+      await authApi.saveSearch({
         type: 'image',
         query: searchParams.q,
         filters: Object.keys(filters).length > 0 ? filters : undefined
-      });
+      }, token);
       
       setSaveSuccess(true);
       setSaveError(null);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save search');
-      console.error('Error saving search:', err);
     }
   };
   

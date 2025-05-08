@@ -159,7 +159,6 @@ export default function AudioPage() {
             setPlayingAudio(audioId);
           })
           .catch(error => {
-            console.error("Audio playback error:", error);
             // Create an alert to show the error
             setError(`Couldn't play audio. ${error.message}`);
           });
@@ -217,17 +216,16 @@ export default function AudioPage() {
     if (searchParams.genres) filters.genres = searchParams.genres;
     
     try {
-      await authApi.saveSearch(token, {
+      await authApi.saveSearch({
         type: 'audio',
         query: searchParams.q,
         filters: Object.keys(filters).length > 0 ? filters : undefined
-      });
+      }, token);
       
       setSaveSuccess(true);
       setSaveError(null);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save search');
-      console.error('Error saving search:', err);
     }
   };
   

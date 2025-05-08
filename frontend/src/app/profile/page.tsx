@@ -58,7 +58,6 @@ export default function ProfilePage() {
       setRecentSearches(searches);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load recent searches');
-      console.error('Error loading recent searches:', err);
     }
   };
   
@@ -69,7 +68,6 @@ export default function ProfilePage() {
       setRecentSearches(updatedSearches);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete search');
-      console.error('Error deleting search:', err);
     }
   };
   
@@ -80,7 +78,6 @@ export default function ProfilePage() {
       setRecentSearches([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to clear searches');
-      console.error('Error clearing searches:', err);
     }
   };
   
@@ -260,7 +257,8 @@ export default function ProfilePage() {
                 {recentSearches.map((search) => (
                   <ListItem 
                     key={search.id}
-                    button
+                    component="li"
+                    sx={{ cursor: 'pointer' }}
                     onClick={() => handleExecuteSearch(search)}
                     secondaryAction={
                       <IconButton edge="end" onClick={(e) => {
@@ -273,23 +271,23 @@ export default function ProfilePage() {
                   >
                     <ListItemText
                       primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography component="span" sx={{ display: 'flex', alignItems: 'center' }}>
                           {search.type === 'image' ? (
                             <ImageIcon sx={{ mr: 1, color: 'primary.main' }} />
                           ) : (
                             <AudioIcon sx={{ mr: 1, color: 'secondary.main' }} />
                           )}
-                          <Typography variant="body1">{search.query}</Typography>
-                        </Box>
+                          <span>{search.query}</span>
+                        </Typography>
                       }
                       secondary={
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
+                        <Typography component="span" variant="body2">
+                          <Typography component="span" variant="caption" color="text.secondary" display="block">
                             {formatDate(search.timestamp)}
                           </Typography>
                           
                           {search.filters && Object.keys(search.filters).length > 0 && (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                            <Typography component="span" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                               {Object.entries(search.filters).map(([key, value]) => (
                                 <Chip 
                                   key={key} 
@@ -298,9 +296,9 @@ export default function ProfilePage() {
                                   variant="outlined"
                                 />
                               ))}
-                            </Box>
+                            </Typography>
                           )}
-                        </Box>
+                        </Typography>
                       }
                     />
                   </ListItem>

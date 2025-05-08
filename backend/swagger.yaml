@@ -232,6 +232,24 @@ paths:
         - bearer: []
       summary: Verify JWT token is valid (for testing)
       tags: *ref_1
+  /api/auth/google:
+    get:
+      operationId: AuthController_googleAuth
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      summary: Initiate Google OAuth authentication
+      tags: *ref_1
+  /api/auth/google/callback:
+    get:
+      operationId: AuthController_googleAuthCallback
+      parameters: []
+      responses:
+        '200':
+          description: Login successful
+      summary: Google OAuth callback
+      tags: *ref_1
   /api/openverse/images:
     get:
       operationId: OpenverseController_searchImages

@@ -13,6 +13,7 @@ interface AuthContextType {
   register: (userData: CreateUserDto) => Promise<void>;
   logout: () => void;
   error: string | null;
+  setAuthState: (state: { isAuthenticated: boolean; user: UserProfile; token: string }) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,33 +27,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth state from localStorage (on client side only)
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    
-    if (storedToken) {
-      setToken(storedToken);
-      // Verify token and get user profile
-      authApi.verifyToken(storedToken)
-        .then(valid => {
+    const initAuth = async () => {
+      // Check for token in localStorage
+      const storedToken = localStorage.getItem('token');
+      // Also check for 'authToken' which might be set by OAuth flow
+      const oauthToken = localStorage.getItem('authToken');
+      
+      const tokenToUse = oauthToken || storedToken;
+      
+      if (tokenToUse) {
+        setToken(tokenToUse);
+        // If we found an OAuth token, move it to the regular token storage
+        if (oauthToken) {
+          localStorage.setItem('token', oauthToken);
+          localStorage.removeItem('authToken');
+        }
+        
+        try {
+          // Verify token and get user profile
+          const valid = await authApi.verifyToken(tokenToUse);
           if (valid) {
-            return authApi.getProfile(storedToken);
+            const profile = await authApi.getProfile(tokenToUse);
+            setUser(profile);
           } else {
             throw new Error('Invalid token');
           }
-        })
-        .then(profile => {
-          setUser(profile);
-        })
-        .catch(() => {
-          // Clear invalid token
+        } catch (error) {
+          // Clear invalid tokens
           localStorage.removeItem('token');
+          localStorage.removeItem('authToken');
           setToken(null);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
+        }
+      }
+      
       setIsLoading(false);
-    }
+    };
+    
+    initAuth();
   }, []);
 
   // Register new user
@@ -101,6 +112,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  // Set authentication state from external sources (OAuth)
+  const setAuthState = (state: { isAuthenticated: boolean; user: UserProfile; token: string }) => {
+    setUser(state.user);
+    setToken(state.token);
+    localStorage.setItem('token', state.token);
+  };
+
   const value = {
     user,
     token,
@@ -110,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     error,
+    setAuthState,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -7,6 +7,9 @@ import {
   Get,
   UseGuards,
   Request,
+  Req,
+  Res,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -24,6 +27,7 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginUserDto } from '../users/dto/login-user.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -114,5 +118,34 @@ export class AuthController {
       message: 'Token is valid',
       user: req.user,
     };
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Initiate Google OAuth authentication' })
+  async googleAuth() {
+    // This route is handled by the strategy
+  }
+  
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  @ApiOkResponse({ description: 'Login successful' })
+  async googleAuthCallback(@Req() req, @Res() res) {
+    try {
+      if (!req.user) {
+        throw new Error('No user data received from Google');
+      }
+      
+      const result = await this.authService.googleLogin(req.user);
+      const frontendUrl = this.authService.getFrontendUrl();
+      const redirectUrl = `${frontendUrl}/login/success?token=${encodeURIComponent(result.token)}`;
+      
+      return res.redirect(redirectUrl);
+    } catch (error) {
+      const frontendUrl = this.authService.getFrontendUrl();
+      return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+    }
   }
 }

@@ -6,18 +6,36 @@ import * as yaml from 'js-yaml';
 import { writeFileSync } from 'fs';
 
 async function bootstrap() {
+  // Check for required environment variables
+  const requiredEnvVars = [
+    'JWT_SECRET',
+    'MONGODB_URI',
+    'OPENVERSE_CLIENT_ID',
+    'OPENVERSE_CLIENT_SECRET'
+  ];
+  
+  const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+  
+  if (missingVars.length > 0) {
+    console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    console.error('Please make sure all required environment variables are set in .env file');
+    process.exit(1);
+  }
+  
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS
-  app.enableCors();
+  app.enableCors({
+    origin: '*', // Allow all origins for testing
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    allowedHeaders: 'Content-Type,Accept,Authorization',
+    exposedHeaders: 'Content-Disposition',
+  });
 
-  // Enable validation
   app.useGlobalPipes(new ValidationPipe());
 
-  // Set global prefix
   app.setGlobalPrefix('api');
 
-  // Setup Swagger
   const config = new DocumentBuilder()
     .setTitle('NestJS API')
     .setDescription('The NestJS API documentation')
@@ -32,46 +50,30 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  // Add direct route for YAML
   app.getHttpAdapter().get('/api/swagger.yaml', (req, res) => {
     try {
       const yamlString = yaml.dump(document);
       res.type('text/yaml').send(yamlString);
     } catch (error) {
-      console.error('Error converting Swagger to YAML:', error);
       res.status(500).send('Error generating YAML');
     }
   });
 
-  // Add direct route for JSON
   app.getHttpAdapter().get('/api/swagger.json', (req, res) => {
     try {
       res.json(document);
     } catch (error) {
-      console.error('Error sending Swagger JSON:', error);
       res.status(500).send('Error generating JSON');
     }
   });
 
-  // Optionally save YAML to file during startup
   try {
     const yamlString = yaml.dump(document);
     writeFileSync('./swagger.yaml', yamlString, 'utf8');
-    console.log('Swagger YAML file generated successfully at ./swagger.yaml');
   } catch (error) {
-    console.error('Error writing Swagger YAML file:', error);
+    // File write errors are non-critical
   }
 
   await app.listen(process.env.PORT ?? 3000);
-  console.log(`Application is running on: ${await app.getUrl()}`);
-  console.log(
-    `Swagger documentation is available at: ${await app.getUrl()}/api/docs`,
-  );
-  console.log(
-    `Swagger YAML is available at: ${await app.getUrl()}/api/swagger.yaml`,
-  );
-  console.log(
-    `Swagger JSON is available at: ${await app.getUrl()}/api/swagger.json`,
-  );
 }
 bootstrap();

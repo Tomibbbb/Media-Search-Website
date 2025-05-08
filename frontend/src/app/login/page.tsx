@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Box, 
@@ -11,9 +11,11 @@ import {
   Paper, 
   Container,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Divider
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
+import GoogleLogin from '../../components/GoogleLogin';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -23,6 +25,15 @@ export default function LoginPage() {
   
   const { login, error: authError } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Check for OAuth errors in URL
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'google_auth_failed') {
+      setFormError('Google authentication failed. Please try again or use email/password.');
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +52,6 @@ export default function LoginPage() {
       // Successful login will redirect via AuthContext
     } catch (err) {
       // AuthContext already handles setting the error
-      console.error('Login failed:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -122,6 +132,10 @@ export default function LoginPage() {
             >
               {isSubmitting ? <CircularProgress size={24} /> : 'Log In'}
             </Button>
+            
+            <Divider sx={{ my: 2 }}>OR</Divider>
+            
+            <GoogleLogin />
             
             <Box sx={{ mt: 2, textAlign: 'center' }}>
               <Typography variant="body2">

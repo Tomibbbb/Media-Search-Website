@@ -103,7 +103,6 @@ export default function AudioDetailsPage() {
       };
       
       const onError = (e: ErrorEvent) => {
-        console.error("Audio playback error:", e);
         setError("Failed to load audio. Please try again later.");
       };
       

@@ -101,7 +101,7 @@ export interface SearchResponse<T> {
   results: T[];
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 const createAuthHeaders = (token: string) => ({
   'Authorization': `Bearer ${token}`,
@@ -120,7 +120,7 @@ export const recentSearchesService = {
         return JSON.parse(storedSearches);
       }
     } catch (error) {
-      console.error('Error retrieving recent searches:', error);
+      // Handle error silently
     }
     
     return [];
@@ -156,7 +156,6 @@ export const recentSearchesService = {
       
       return limitedSearches;
     } catch (error) {
-      console.error('Error adding recent search:', error);
       return [];
     }
   },
@@ -172,7 +171,6 @@ export const recentSearchesService = {
       
       return updatedSearches;
     } catch (error) {
-      console.error('Error deleting recent search:', error);
       return [];
     }
   },
@@ -183,14 +181,14 @@ export const recentSearchesService = {
     try {
       localStorage.removeItem('recentSearches');
     } catch (error) {
-      console.error('Error clearing recent searches:', error);
+      // Handle error silently
     }
   }
 };
 
 export const authApi = {
   register: async (userData: CreateUserDto): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/api/auth/register`, {
+    const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -207,7 +205,7 @@ export const authApi = {
   },
 
   login: async (credentials: LoginUserDto): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/api/auth/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -225,7 +223,7 @@ export const authApi = {
 
   verifyToken: async (token: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_URL}/api/auth/verify-token`, {
+      const response = await fetch(`${API_URL}/auth/verify-token`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -237,7 +235,7 @@ export const authApi = {
   },
 
   getProfile: async (token: string): Promise<UserProfile> => {
-    const response = await fetch(`${API_URL}/api/users/profile`, {
+    const response = await fetch(`${API_URL}/users/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -246,6 +244,24 @@ export const authApi = {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to get profile');
+    }
+
+    return response.json();
+  },
+  
+  saveSearch: async (searchData: { type: 'image' | 'audio', query: string, filters?: Record<string, any> }, token: string): Promise<RecentSearch[]> => {
+    const response = await fetch(`${API_URL}/users/saved-searches`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(searchData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to save search');
     }
 
     return response.json();
@@ -261,7 +277,7 @@ export const openverseApi = {
       }
     });
 
-    const response = await fetch(`${API_URL}/api/openverse/images?${queryParams.toString()}`, {
+    const response = await fetch(`${API_URL}/openverse/images?${queryParams.toString()}`, {
       headers: createAuthHeaders(token),
     });
 
@@ -286,7 +302,7 @@ export const openverseApi = {
   },
 
   getImage: async (id: string, token: string): Promise<ImageItem> => {
-    const response = await fetch(`${API_URL}/api/openverse/images/${id}`, {
+    const response = await fetch(`${API_URL}/openverse/images/${id}`, {
       headers: createAuthHeaders(token),
     });
 
@@ -306,7 +322,7 @@ export const openverseApi = {
       }
     });
 
-    const response = await fetch(`${API_URL}/api/openverse/audio?${queryParams.toString()}`, {
+    const response = await fetch(`${API_URL}/openverse/audio?${queryParams.toString()}`, {
       headers: createAuthHeaders(token),
     });
 
@@ -332,7 +348,7 @@ export const openverseApi = {
   },
 
   getAudio: async (id: string, token: string): Promise<AudioItem> => {
-    const response = await fetch(`${API_URL}/api/openverse/audio/${id}`, {
+    const response = await fetch(`${API_URL}/openverse/audio/${id}`, {
       headers: createAuthHeaders(token),
     });
 

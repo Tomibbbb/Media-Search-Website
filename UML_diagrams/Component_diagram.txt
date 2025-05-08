@@ -12,12 +12,15 @@
 
   database "MongoDB"
   cloud "Openverse API"
+  cloud "Google OAuth 2.0"
 
   [Next.js + React] --> [NestJS]: REST API
   [NestJS] --> [MongoDB]: Store data
   [NestJS] --> [Openverse API]: Media search
 
   [Next.js + React] --> [Material UI]: Uses
-  [NestJS] --> [Passport.js]: Authentication
+  [NestJS] --> [Passport.js]: Handles auth logic
+  [Passport.js] --> [Google OAuth 2.0]: Federated login
+  [Passport.js] --> [MongoDB]: Local login validation
   [NestJS] --> [Mongoose]: Database access
-  @enduml
+@enduml

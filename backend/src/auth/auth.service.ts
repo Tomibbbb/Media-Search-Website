@@ -25,20 +25,12 @@ export class AuthService {
     const user = await this.usersService.create(createUserDto);
 
     const payload = { sub: user._id.toString(), email: user.email };
-    this.logger.debug(
-      `Generated JWT payload for user: ${JSON.stringify(payload)}`,
-    );
-
     const token = this.jwtService.sign(payload);
-    this.logger.debug(`JWT token generated successfully`);
 
     try {
       await this.emailService.sendRegistrationEmail(user.email, user.firstName);
     } catch (error) {
-      this.logger.error(
-        `Error sending registration email: ${error.message}`,
-        error.stack,
-      );
+      this.logger.error(`Error sending registration email`);
     }
 
     const userObj = user.toObject();
@@ -55,7 +47,6 @@ export class AuthService {
   ): Promise<{ user: Partial<User>; token: string }> {
     try {
       const user = await this.usersService.findByEmail(loginUserDto.email);
-      this.logger.debug(`Found user with email ${loginUserDto.email}`);
 
       const isPasswordValid = await bcrypt.compare(
         loginUserDto.password,
@@ -63,19 +54,11 @@ export class AuthService {
       );
 
       if (!isPasswordValid) {
-        this.logger.warn(`Invalid password for user ${loginUserDto.email}`);
         throw new UnauthorizedException('Invalid credentials');
       }
 
       const payload = { sub: user._id.toString(), email: user.email };
       const token = this.jwtService.sign(payload);
-
-      try {
-        this.jwtService.verify(token);
-      } catch (error) {
-        this.logger.error(`Token verification failed: ${error.message}`);
-        throw new Error(`Failed to verify token: ${error.message}`);
-      }
 
       const userObj = user.toObject();
       const { password, ...userWithoutPassword } = userObj;
@@ -85,17 +68,58 @@ export class AuthService {
         token,
       };
     } catch (error) {
-      this.logger.error(`Login error: ${error.message}`, error.stack);
       throw new UnauthorizedException('Invalid credentials');
     }
   }
 
   async validateToken(token: string): Promise<any> {
     try {
-      return this.jwtService.verify(token);
+      const decoded = this.jwtService.verify(token);
+      
+      const user = await this.usersService.findById(decoded.sub);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+      
+      return decoded;
     } catch (error) {
-      this.logger.error(`Token validation error: ${error.message}`);
       throw new UnauthorizedException('Invalid token');
     }
+  }
+  
+  async googleLogin(user: any): Promise<{ user: Partial<User>; token: string }> {
+    if (!user) {
+      throw new UnauthorizedException('Google authentication failed: No user data');
+    }
+    
+    const userId = user.userId || user._id;
+    const email = user.email;
+    const firstName = user.firstName || 'Google';
+    const lastName = user.lastName || 'User';
+    
+    if (!userId || !email) {
+      throw new UnauthorizedException('Google authentication failed: Missing user data');
+    }
+    
+    const payload = { 
+      sub: userId.toString(), 
+      email: email
+    };
+    
+    const token = this.jwtService.sign(payload);
+    
+    return {
+      user: {
+        _id: userId,
+        firstName,
+        lastName,
+        email,
+      },
+      token,
+    };
+  }
+  
+  getFrontendUrl(): string {
+    return this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
   }
 }

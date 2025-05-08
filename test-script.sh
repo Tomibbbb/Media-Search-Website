@@ -1,4 +1,4 @@
-#!/bin/bash
+
 set -e
 
 echo " Starting test script for entire project..."

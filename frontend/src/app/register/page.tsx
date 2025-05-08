@@ -12,9 +12,11 @@ import {
   Container,
   Alert,
   CircularProgress,
-  Grid
+  Grid,
+  Divider
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
+import GoogleLogin from '../../components/GoogleLogin';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -67,7 +69,6 @@ export default function RegisterPage() {
       // Successful registration will redirect via AuthContext
     } catch (err) {
       // AuthContext already handles setting the error
-      console.error('Registration failed:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -192,6 +193,14 @@ export default function RegisterPage() {
             >
               {isSubmitting ? <CircularProgress size={24} /> : 'Register'}
             </Button>
+            
+            <Divider sx={{ my: 2 }}>OR</Divider>
+            
+            <GoogleLogin buttonText="Sign up with Google" />
+            
+            <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+              By signing up with Google, you'll create a new account if one doesn't exist.
+            </Typography>
             
             <Box sx={{ mt: 2, textAlign: 'center' }}>
               <Typography variant="body2">
